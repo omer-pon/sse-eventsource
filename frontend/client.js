@@ -1,27 +1,21 @@
+const ul = document.querySelector("ul");
 let source = new EventSource("http://localhost:8000");
 
-source.onmessage = function (event) {
-	console.log(event.data);
+const appendToList = (data) => {
+	const li = document.createElement("li");
+	li.textContent = data;
+	ul.appendChild(li);
 };
 
-source.addEventListener("ping", function (event) {
-	console.log(event.data);
+source.addEventListener("CustomEvent", (event) => {
+	appendToList(JSON.parse(event.data).time);
 });
 
-source.onclose = function () {
-	console.log("Connection was closed");
-};
+source.addEventListener("Close", (event) => {
+	appendToList(event.data);
+	source.close();
+});
 
-source.onerror = function (error) {
-	console.error("Error: " + error.message);
-	// source.close();
+source.onerror = (error) => {
+	console.error("Error: " + JSON.parse(error));
 };
-
-source.addEventListener(
-	"ping",
-	function (event) {
-		let data = JSON.parse(event.data);
-		console.log("Ping at " + data.time);
-	},
-	false
-);

@@ -1,36 +1,31 @@
 const express = require("express");
 const cors = require("cors");
-const moment = require("moment-timezone");
 const app = express();
+const PORT = 8000;
 
 app.use(cors());
 
 app.get("/", (req, res) => {
 	res.setHeader("Content-Type", "text/event-stream");
 	res.setHeader("Cache-Control", "no-store");
-
-	let counter = Math.floor(Math.random() * 10) + 1;
+	let counter = 5;
 
 	let intervalId = setInterval(() => {
-		let curDate = moment().tz("America/New_York").format();
+		const date = new Date();
+		if (counter > 0) {
+			res.write(`event: CustomEvent\n`);
+			res.write(`data: {"time": "${date.toLocaleTimeString()}"}\n\n`);
+		} else {
+			// Send a closing event to signify the end of the stream
+			res.write(`event: Close\n`);
+			res.write(`data: Stream Ended\n\n`);
 
-		res.write(`event: ping\n`);
-		res.write(`data: {"time": "${curDate}"}\n\n`);
-
-		counter--;
-
-		if (!counter) {
-			res.write(`data: This is a message at time ${curDate}\n\n`);
-			counter = Math.floor(Math.random() * 10) + 1;
-		}
-		console.log("req.finished", req.finished);
-		// Check if the connection is closed
-		if (req.finished) {
 			clearInterval(intervalId);
 		}
+		counter--;
 	}, 1000);
 });
 
-app.listen(8000, () => {
+app.listen(PORT, () => {
 	console.log("Server is running on port 8000");
 });
